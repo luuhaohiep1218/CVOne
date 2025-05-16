@@ -9,11 +9,13 @@ import { OAuthUserDetail, LocalUserDetail } from 'src/utils/types';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private jwtService: JwtService,
   ) {}
   async validateOAuthUser(details: OAuthUserDetail) {
     console.log('AuthService');
@@ -36,21 +38,26 @@ export class AuthService {
     return this.userRepository.save(newUser);
   }
 
-  async validateLocalUser(details: LocalUserDetail) {
-    const user = await this.userRepository.findOneBy({ email: details.email });
+  async validateLocalUser(email: string, password: string) {
+    const user = await this.userRepository.findOneBy({ email: email });
 
     if (!user || !user.password) {
       return null; // hoặc throw UnauthorizedException
     }
 
     // So sánh password
-    const isMatch = await this.comparePasswords(
-      details.password,
-      user.password,
-    );
+    const isMatch = await this.comparePasswords(password, user.password);
     if (!isMatch) return null;
 
     return user;
+  }
+
+  async login(user: any) {
+    const payload = { name: user.fullName, sub: user.id };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 
   // Hàm hỗ trợ so sánh mật khẩu

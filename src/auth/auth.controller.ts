@@ -33,10 +33,7 @@ export class AuthController {
   @Post('login')
   @UseGuards(LocalAuthGuard)
   async loginLocal(@Req() req: Request) {
-    return {
-      msg: 'Login successful',
-      user: req.user,
-    };
+    return this.authService.login(req.user);
   }
 
   @Post('register')

@@ -30,3 +30,6 @@ export class AuthenticationGuard implements CanActivate {
     return request.isAuthenticated();
   }
 }
+
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt') {}
